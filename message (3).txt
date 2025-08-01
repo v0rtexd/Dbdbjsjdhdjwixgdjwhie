@@ -1,6 +1,5 @@
 local Library = loadstring(game:HttpGet("https://pastefy.app/kX0cABr4/raw"))()
 local main = Library.new()
-
 local Players = game:GetService('Players')
 local Player = Players.LocalPlayer
 local ReplicatedStorage = game:GetService('ReplicatedStorage')
@@ -875,6 +874,16 @@ ReplicatedStorage.Remotes.ParrySuccess.OnClientEvent:Connect(function()
     end
 end)
 
+-- Ball ChildAdded/Removed for parried state (from second script, adapted)
+workspace.Balls.ChildAdded:Connect(function()
+    State.parried = false
+end)
+
+workspace.Balls.ChildRemoved:Connect(function(Value)
+    State.parries = 0
+    State.parried = false
+end)
+
 
 local print = function() end
 
@@ -1015,20 +1024,9 @@ task.spawn(function()
     end
 end)
 
--- Ball ChildAdded/Removed for parried state (from second script, adapted)
-workspace.Balls.ChildAdded:Connect(function()
-    State.parried = false
-end)
-
-workspace.Balls.ChildRemoved:Connect(function(Value)
-    State.parries = 0
-    State.parried = false
-end)
-
-
 local combatTab = main:create_tab("Combat", "rbxassetid://76499042599127")
 local utilityTab = main:create_tab("Utility", "rbxassetid://126017907477623")
-local esclusiveTab = main:create_tab("Esclusive", "rbxassetid://132767639164726")
+local esclusiveTab = main:create_tab("Esclusive", "rbxassetid://113872172732225")
 
 local autoParryModule = combatTab:create_module({
     title = "Auto Parry",
@@ -1074,7 +1072,7 @@ local parryTypeDropdown = autoParryModule:create_dropdown({
     flag = "ParryType",
     options = {"Custom", "Random", "Backwards"},
     multi_dropdown = false,
-    maximum_options = 3,
+    maximum_options = 8,
     callback = function(value)
         Config.ParryType = parryTypeMap[value] or value
     end
@@ -1120,10 +1118,26 @@ autoParryModule:create_slider({
 })
 
 autoParryModule:create_checkbox({
-    title = "auto ability (beta)",
+    title = "Auto Ability (beta)",
     flag = "AutoAbility",
     callback = function(value: boolean)
         Config.AutoAbility = value
+    end
+})
+
+autoParryModule:create_checkbox({
+    title = "Keypress",
+    flag = "Auto_Parry_Keypress",
+    callback = function(value: boolean)
+        Config.AutoParryKeypress = value
+    end
+})
+
+autoParryModule:create_checkbox({
+    title = "Notify",
+    flag = "Auto_Parry_Notify",
+    callback = function(value: boolean)
+        Config.AutoParryNotify = value
     end
 })
 
@@ -1137,14 +1151,14 @@ local autoSpamModule = combatTab:create_module({
         if Config.AutoSpamNotify then
             if value then
                 Library.SendNotification({
-                    title = "ON",
-                    text = "OM",
+                    title = "Module Notification",
+                    text = "Auto Spam Parry turned ON",
                     duration = 3
                 })
             else
                 Library.SendNotification({
-                    title = "OFF",
-                    text = "OFF",
+                    title = "Module Notification",
+                    text = "Auto Spam Parry turned OFF",
                     duration = 3
                 })
             end
@@ -1161,23 +1175,23 @@ local autoSpamModule = combatTab:create_module({
 })
 
 local lobbyAPModule = utilityTab:create_module({
-    title = "Lobby Auto Parry",
+    title = "lobby ap",
     flag = "LobbyAP",
-    description = "Ap in lobby",
+    description = "lobby ap",
     section = "left",
     callback = function(value)
         Config.LobbyAP = value
         if Config.LobbyAPNotify then
             if value then
                 Library.SendNotification({
-                    title = "on ",
-                    text = "on",
+                    title = "Module Notification",
+                    text = "Lobby AP has been turned ON",
                     duration = 3
                 })
             else
                 Library.SendNotification({
-                    title = "off",
-                    text = "off",
+                    title = "Module Notification",
+                    text = "Lobby AP has been turned OFF",
                     duration = 3
                 })
             end
@@ -1204,7 +1218,6 @@ lobbyAPModule:create_slider({
         Config.LobbySpeedMultiplier = 0.7 + (value - 1) * (0.35 / 99)
     end
 })
-
 
 local SkinChanger = esclusiveTab:create_module({
     title = 'Skin Changer',
@@ -1234,5 +1247,6 @@ local skinchangertextbox = SkinChanger:create_textbox({
         end
     end
 })
+
 
 main:load()
